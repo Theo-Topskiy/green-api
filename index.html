@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Green API DevOps Тест</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .container {
+      display: flex;
+      gap: 20px;
+    }
+    .form-section, .response-section {
+      flex: 1;
+    }
+    input, textarea, button {
+      padding: 8px;
+      margin: 5px 0;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    textarea {
+      height: 450px;
+      resize: none;
+    }
+    button {
+      cursor: pointer;
+    }
+    .block {
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Green API Тест</h1>
+
+  <div class="container">
+    <div class="form-section">
+      <div class="block">
+        <label>ID Instance:</label>
+        <input type="text" id="idInstance" placeholder="Введите ID инстанса" />
+
+        <label>API Token Instance:</label>
+        <input type="text" id="apiTokenInstance" placeholder="Введите API токен" />
+
+        <button onclick="callMethod('getSettings')">getSettings</button>
+        <button onclick="callMethod('getStateInstance')">getStateInstance</button>
+      </div>
+
+      <div class="block">
+        <label>Номер получателя (для отправки сообщения):</label>
+        <input type="text" id="phoneNumberMsg" placeholder="79001234567" />
+
+        <label>Сообщение:</label>
+        <input type="text" id="message" />
+
+        <button onclick="sendMessage()">sendMessage</button>
+      </div>
+
+      <div class="block">
+        <label>Номер получателя (для отправки файла):</label>
+        <input type="text" id="phoneNumberFile" placeholder="79001234567" />
+
+        <label>Ссылка на файл:</label>
+        <input type="text" id="fileUrl" />
+
+        <button onclick="sendFileByUrl()">sendFileByUrl</button>
+      </div>
+    </div>
+
+    <div class="response-section">
+      <h3>Ответ API:</h3>
+      <textarea id="responseArea" readonly></textarea>
+    </div>
+  </div>
+
+  <script>
+    function getApiUrl(method) {
+      const id = document.getElementById("idInstance").value;
+      const token = document.getElementById("apiTokenInstance").value;
+      return `https://api.green-api.com/waInstance${id}/${method}/${token}`;
+    }
+
+    function displayResponse(data) {
+      document.getElementById("responseArea").value = JSON.stringify(data, null, 2);
+    }
+
+    async function callMethod(method) {
+      try {
+        const res = await fetch(getApiUrl(method));
+        const data = await res.json();
+        displayResponse(data);
+      } catch (err) {
+        displayResponse({ error: err.toString() });
+      }
+    }
+
+    async function sendMessage() {
+      const phone = document.getElementById("phoneNumberMsg").value;
+      const message = document.getElementById("message").value;
+      const url = getApiUrl("sendMessage");
+
+      const payload = {
+        chatId: phone + "@c.us",
+        message: message
+      };
+
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        displayResponse(data);
+      } catch (err) {
+        displayResponse({ error: err.toString() });
+      }
+    }
+
+    async function sendFileByUrl() {
+      const phone = document.getElementById("phoneNumberFile").value;
+      const fileUrl = document.getElementById("fileUrl").value;
+      const url = getApiUrl("sendFileByUrl");
+
+      const payload = {
+        chatId: phone + "@c.us",
+        urlFile: fileUrl,
+        fileName: "file.jpg"
+      };
+
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        displayResponse(data);
+      } catch (err) {
+        displayResponse({ error: err.toString() });
+      }
+    }
+  </script>
+</body>
+</html>
